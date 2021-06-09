@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Paddy Disease Classification</string>
+    <string name="logo_bangkit">Logo Bangkit</string>
+    <string name="start">Start</string>
+</resources>

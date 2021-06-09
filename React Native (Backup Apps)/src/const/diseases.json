@@ -1,0 +1,14 @@
+[
+    {
+        "name": "Blast",
+        "type": "Fungus",
+        "latin": "Magnaporthe oryzae",
+        "description": "Blast is caused by the fungus Magnaporthe oryzae. It can affect all above ground parts of a rice plant: leaf, collar, node, neck, parts of panicle, and sometimes leaf sheath.\nBlast can occur wherever blast spores are present.\nIt occurs in areas with low soil moisture, frequent and prolonged periods of rain shower, and cool temperature in the daytime. In upland rice, large day-night temperature differences that cause dew formation on leaves and overall cooler temperatures favor the development of the disease.\nRice can have blast in all growth stages. However, leaf blast incidence tends to lessen as plants mature and develop adult plant resistance to the disease.",
+        "symptomps": [
+            "Initial symptoms appear as white to gray-green lesions or spots, with dark green borders.",
+            "Older lesions on the leaves are elliptical or spindle-shaped and whitish to gray centers with red to brownish or necrotic border.",
+            "Some resemble diamond shape, wide in the center and pointed toward either ends.",
+            "Lesions can enlarge and coalesce, growing together, to kill the entire leaves."
+        ]
+    }
+]

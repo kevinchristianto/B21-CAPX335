@@ -1,0 +1,11 @@
+runtime: nodejs14
+
+env_variables:
+    DB_USER: "root"
+    DB_NAME: "rice_diseases"
+    DB_PASS: "capx335-rice-disease"
+    DB_SOCKET_PATH: "/cloudsql"
+    CLOUD_SQL_CONNECTION_NAME: "b21-capx335:asia-southeast2:rice-disease"
+    DB_HOST: "34.101.71.31"
+# beta_settings:
+#     cloud_sql_instances: "b21-capx335:asia-southeast2:rice-disease"

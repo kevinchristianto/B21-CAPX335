@@ -1,0 +1,17 @@
+{
+  "name": "rice-disease-api",
+  "version": "1.0.0",
+  "description": "This API was created to support my Bangkit Academy Capstone Project. The function of this is API is to get the rice disease-related data stored on Google Cloud SQL.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kevin Christianto (M1521728)",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}

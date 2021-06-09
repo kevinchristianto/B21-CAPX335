@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-photo-view/android/build.gradle b/node_modules/react-native-photo-view/android/build.gradle
+index e383a98..20172e8 100644
+--- a/node_modules/react-native-photo-view/android/build.gradle
++++ b/node_modules/react-native-photo-view/android/build.gradle
+@@ -31,6 +31,9 @@ android {
+     lintOptions {
+         abortOnError false
+     }
++    configurations.all {
++        resolutionStrategy.force 'com.google.code.findbugs:jsr305:3.0.2'
++    }
+ }
+ 
+ repositories {
