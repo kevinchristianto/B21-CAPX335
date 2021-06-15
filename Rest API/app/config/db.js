@@ -14,10 +14,11 @@
 const mysql = require("mysql")
 
 const conn = mysql.createConnection({
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    socketPath: `${process.env.DB_SOCKET_PATH}/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
+    user: process.env.DB_USER || 'sql6419249',
+    password: process.env.DB_PASS || 'Tbv2rcJVyx',
+    database: process.env.DB_NAME || 'sql6419249',
+    // socketPath: `${process.env.DB_SOCKET_PATH}/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
+    host: process.env.DB_HOST || 'sql6.freemysqlhosting.net',
     multipleStatements: true
 })
 

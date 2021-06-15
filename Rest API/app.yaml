@@ -1,11 +1,12 @@
 runtime: nodejs14
 
 env_variables:
-    DB_USER: "root"
-    DB_NAME: "rice_diseases"
-    DB_PASS: "capx335-rice-disease"
+    PORT: "3000"
+    DB_USER: "sql6419249"
+    DB_NAME: "sql6419249"
+    DB_PASS: "Tbv2rcJVyx"
     DB_SOCKET_PATH: "/cloudsql"
     CLOUD_SQL_CONNECTION_NAME: "b21-capx335:asia-southeast2:rice-disease"
-    DB_HOST: "34.101.71.31"
+    DB_HOST: "sql6.freemysqlhosting.net"
 # beta_settings:
 #     cloud_sql_instances: "b21-capx335:asia-southeast2:rice-disease"
