@@ -2,9 +2,9 @@ runtime: nodejs14
 
 env_variables:
     PORT: "3000"
-    DB_USER: "sql6419249"
-    DB_NAME: "sql6419249"
-    DB_PASS: "Tbv2rcJVyx"
+    DB_USER: "sql6430780"
+    DB_NAME: "sql6430780"
+    DB_PASS: "alQ37w2i9f"
     DB_SOCKET_PATH: "/cloudsql"
     CLOUD_SQL_CONNECTION_NAME: "b21-capx335:asia-southeast2:rice-disease"
     DB_HOST: "sql6.freemysqlhosting.net"

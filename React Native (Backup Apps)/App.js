@@ -2,8 +2,9 @@ import React from 'react'
 import {
 	StyleSheet,
 	Dimensions,
-	Image,
-	ScrollView
+	ScrollView,
+	TouchableOpacity,
+	ToastAndroid
 } from 'react-native'
 import {
 	View,
@@ -12,6 +13,9 @@ import {
 	NavigationBar,
 	Button,
 	Caption,
+	Image,
+	Divider,
+	Row,
 } from '@shoutem/ui'
 import Icon from 'react-native-vector-icons/Feather'
 import BottomSheet from 'reanimated-bottom-sheet'
@@ -24,6 +28,7 @@ import {
 	decodeJpeg
 } from '@tensorflow/tfjs-react-native'
 import { FileSystem } from 'react-native-unimodules'
+import Animated from 'react-native-reanimated'
 
 import LoadingModal from './src/component/LoadingModal'
 
@@ -38,8 +43,13 @@ export default class MainScreen extends React.PureComponent {
 			tfReady: false,
 			showCamera: false,
 			isLoading: false,
+			isFetching: false,
 			hasCameraPermission: false,
-			isLoadingModel: false
+			isLoadingModel: false,
+			bottomSheetAnimation: new Animated.Value(0),
+			photoUri: null,
+			numOfLines: 5,
+			diseaseInfo: {},
 		}
 		
 		this.sheet = React.createRef()
@@ -48,7 +58,8 @@ export default class MainScreen extends React.PureComponent {
 	
 	componentDidMount() {
 		this.checkCameraPermission()
-		this.checkTf()
+		// this.checkTf()
+		this.sheet.current.snapTo(0)
 	}
 	
 	checkCameraPermission = async () => {
@@ -58,7 +69,7 @@ export default class MainScreen extends React.PureComponent {
 	
 	checkTf = async () => {
 		this.setState({isLoadingModel: true}, async () => {
-			await tf.setBackend('cpu')
+			// await tf.setBackend('cpu')
 			await tf.ready()
 			this.setState({tfReady: true}, () => this.loadModel())
 		})
@@ -76,7 +87,7 @@ export default class MainScreen extends React.PureComponent {
 	}
 	
 	predict = async uri => {
-		const fileUri = uri
+		const fileUri = this.state.photoUri
 		const imgB64 = await FileSystem.readAsStringAsync(fileUri, {
 			encoding: FileSystem.EncodingType.Base64,
 		})
@@ -87,15 +98,172 @@ export default class MainScreen extends React.PureComponent {
 		const image = await imageResized.reshape([1, 224, 224, 3,])
 		
 		const prediction = await this.model.predict(image)
-		// // alert(CLASSES[tf.argMax(prediction, 1).dataSync()[0]])
-		alert(prediction)
-		console.log(CLASSES[tf.argMax(prediction, 1).dataSync()[0]])
+		const predicted_id = tf.argMax(prediction, 1).dataSync()[0] + 1
+		
+		this.fetchDiseaseInfo(predicted_id)
 	}
+
+	fetchDiseaseInfo = async id => {
+		this.setState({isFetching: true})
+
+		try {
+			let res = await fetch(`https://rice-disease-backend.herokuapp.com/disease/${id}`)
+			res = await res.json()
+
+			this.setState({diseaseInfo: res})
+		} catch (e) {
+			ToastAndroid.show('Failed to fetch disease data')
+		}
+
+		this.setState({isFetching: false})
+	}
+
+	renderBottomSheet = () => (
+		<ScrollView style={{minHeight: HEIGHT, backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', paddingBottom: 24}}>
+			<Animated.View style={[s.dragIndicator, {
+				top: this.state.bottomSheetAnimation.interpolate({
+					inputRange: [0, 1],
+					outputRange: [-10, 0]
+				})
+			}]} />
+			<View>
+				<Animated.Text
+					style={{
+						textAlign: 'center',
+						fontFamily: 'Product Sans Bold',
+						fontSize: 16,
+						color: '#666',
+						marginTop: this.state.bottomSheetAnimation.interpolate({
+							inputRange: [0, 1],
+							outputRange: [0, 38]
+						}),
+						marginBottom: this.state.bottomSheetAnimation.interpolate({
+							inputRange: [0, 1],
+							outputRange: [-24, -12]
+						}),
+						opacity: this.state.bottomSheetAnimation.interpolate({
+							inputRange: [0, 1],
+							outputRange: [0, 1.5]
+						})
+					}}
+				>
+					SWIPE TO SEE DISEASE DETAIL
+				</Animated.Text>
+				{this.state.photoUri ? (
+					<Animated.View style={{
+						opacity: this.state.bottomSheetAnimation.interpolate({
+							inputRange: [0, 1],
+							outputRange: [1, -1]
+						}),
+					}}>
+						<Image source={{uri: this.state.photoUri}} styleName="large-banner" style={{borderTopLeftRadius: 20, borderTopRightRadius: 20}} />
+					</Animated.View>
+				) : null}
+
+				<Animated.View style={{flexDirection: 'row', alignItems: 'center', marginTop: this.state.bottomSheetAnimation.interpolate({
+					inputRange: [0, 1],
+					outputRange: [-16, -WIDTH / 1.5]
+				})}}>
+					<Animated.View style={{
+						left: this.state.bottomSheetAnimation.interpolate({
+							inputRange: [0, .51],
+							outputRange: [16, (WIDTH / 2) - 112]
+						})
+					}}>
+						{/* <LottieView
+							source={
+								this.state.diseaseInfo?.brief?.type == "Bacteria" ? require('./assets/lottie/bacteria.json')
+								: (this.state.diseaseInfo?.brief?.type == "Virus" ? require('./assets/lottie/virus.json') : require('./assets/lottie/fungi3.json'))
+							}
+							autoPlay
+							style={{
+								width: 100,
+								alignItems: 'center',
+								justifyContent: 'center',
+							}}
+						/> */}
+						<Image
+							source={
+								this.state.diseaseInfo?.brief?.type == "Bacteria" ? require('./assets/images/bacteria.png')
+								: (this.state.diseaseInfo?.brief?.type == "Virus" ? require('./assets/images/virus.png') : require('./assets/images/fungus.png'))
+							}
+							style={{width: 100, alignItems: 'center', justifyContent: 'center'}}
+						/>
+					</Animated.View>
+					<Animated.View
+						style={{
+							alignItems: 'flex-start',
+							opacity: this.state.bottomSheetAnimation.interpolate({
+								inputRange: [0, 1],
+								outputRange: [1, -1]
+							}),
+							marginLeft: 16
+						}}
+					>
+						<Text style={{fontFamily: 'Product Sans Bold', fontSize: 18,}}>{this.state.diseaseInfo?.brief?.disease_name}</Text>
+						<Text>{this.state.diseaseInfo?.brief?.type}</Text>
+						<Caption style={{fontStyle: 'italic'}}>{this.state.diseaseInfo?.brief?.latin}</Caption>
+					</Animated.View>
+				</Animated.View>
+
+				<View style={{paddingHorizontal: 24, marginTop: -24}}>
+					<View>
+						<Text style={{textAlign: 'justify', fontFamily: 'Product Sans', fontSize: 16}} numberOfLines={this.state.numOfLines}>
+							{'\t'}{'\t'}{'\t'}{this.state.diseaseInfo?.brief?.description}
+						</Text>
+						{this.state.numOfLines > 0 ? (
+							<TouchableOpacity onPress={() => this.setState({numOfLines: 0})}><Text style={{color: '#3490dc'}}>Read more</Text></TouchableOpacity>
+						) : null}
+					</View>
+
+					<View style={{marginTop: 24}}>
+						<Text style={s.diseaseSectionTitle}>Symptoms</Text>
+						<Divider styleName="line" style={s.divider} />
+						{this.state.diseaseInfo?.symptoms?.map((val, i) => (
+							<View style={{flexDirection: 'row'}}>
+								<Icon name='check-circle' style={{marginTop: 7}} />
+								<Text key={val + i} style={s.textPoint}>{val.symptom_description}</Text>
+							</View>
+						))}
+					</View>	
+
+					<View style={{marginTop: 24}}>
+						<Text style={s.diseaseSectionTitle}>Treatments</Text>
+						<Divider styleName="line" style={s.divider} />
+						{this.state.diseaseInfo?.treatments?.map((val, i) => (
+							<View style={{flexDirection: 'row'}}>
+								<Icon name='check-circle' style={{marginTop: 7}} />
+								<Text key={val + i} style={s.textPoint}>{val.treatment_description}</Text>
+							</View>
+						))}
+					</View>
+
+					<View style={{marginTop: 24}}>
+						<Text style={s.diseaseSectionTitle}>Chemical Control</Text>
+						<Divider styleName="line" style={s.divider} />
+						{this.state.diseaseInfo?.cures?.length > 0 ? this.state.diseaseInfo?.cures?.map((val, i) => (
+							<Row style={{backgroundColor: 'rgba(0, 0, 0, .02)', marginHorizontal: -24, marginBottom: 8}}>
+								<View styleName="v-center" style={{flex: 0, paddingRight: 24}}>
+									{/* <Icon name="feather" size={32} style={{marginLeft: -8}} /> */}
+									<Image source={require('./assets/images/chemical.png')} style={{width: 45, height: 45, marginLeft: 16}} />
+								</View>
+								<View styleName="vertical v-center">
+									<Caption>{val.chemical_type}</Caption>
+									<Text style={{fontFamily: 'Product Sans Bold', fontSize: 16, width: '92%', marginTop: -4}}>{val.chemical_name}</Text>
+								</View>
+							</Row>
+						)) : <Text style={{fontFamily: 'Product Sans', fontSize: 16}}>Sorry, there are no known effective chemical control for this kind of disease.</Text>}
+					</View>
+				</View>
+			</View>
+		</ScrollView>
+	)
 	
 	render() {
 		return (
 			<>
 				<LoadingModal show={this.state.isLoading} />
+				<LoadingModal show={this.state.isFetching} type="fetching" />
 				<View style={{flex: 1}}>
 					<CameraModal
 						showCamera={this.state.showCamera}
@@ -103,7 +271,8 @@ export default class MainScreen extends React.PureComponent {
 						showSheet={() => this.sheet.current.snapTo(1)}
 						setLoading={state => this.setState({isLoading: state})}
 						model={this.model}
-						predict={uri => this.predict(uri)}
+						predict={() => this.predict()}
+						setPhoto={uri => this.setState({photoUri: uri})}
 					/>
 					<NavigationBar
 						styleName="inline clear"
@@ -150,10 +319,12 @@ export default class MainScreen extends React.PureComponent {
 					
 				<BottomSheet
 					ref={this.sheet}
-					renderContent={() => <BottomSheetComponent />}
-					// borderRadius={24}
+					renderContent={() => this.renderBottomSheet()}
 					initialSnap={2}
-					snapPoints={['100%', 400, 0]}
+					snapPoints={['100%', 200, 0]}
+					callbackNode={this.state.bottomSheetAnimation}
+					enabledContentTapInteraction={false}
+					onCloseEnd={() => this.setState({diseaseInfo: {}})}
 				/>
 			</>
 		)
@@ -181,7 +352,8 @@ class CameraModal extends React.PureComponent {
 			const data = await this.camera.takePictureAsync(options)
 			this.camera.pausePreview()
 			this.props.setLoading(true)
-			await this.props.predict(data.uri)
+			this.props.setPhoto(data.uri)
+			await this.props.predict()
 		}
 		this.props.showSheet()
 		this.props.setLoading(false)
@@ -229,31 +401,6 @@ class CameraModal extends React.PureComponent {
 		)
 	}
 }
-						
-class BottomSheetComponent extends React.PureComponent {
-	render() {
-		return (
-			<ScrollView style={{minHeight: HEIGHT, backgroundColor: '#fff', padding: 24, paddingTop: 0, borderWidth: .4, borderColor: 'rgba(0, 0, 0, .2)', borderRadius: 20, overflow: 'hidden'}}>
-				<View style={s.dragIndicator} />
-				<View>
-					{/* <Title style={[s.title, {alignSelf: 'center', textAlign: 'center'}]}>Disease Detail</Title> */}
-					<View style={{flexDirection: 'row', alignItems: 'center'}}>
-						<LottieView
-							source={require('./assets/lottie/bacteria.json')}
-							autoPlay
-							style={{width: 100, alignItems: 'center', justifyContent: 'center'}}
-						/>
-						<View>
-							<Title style={{opacity: .8, fontFamily: 'Product Sans Bold'}}>Bacterial Blight</Title>
-							<Text style={{marginTop: -8}}>Bacteria</Text>
-							<Caption>Xanthomonas oryzae pv. oryzae</Caption>
-						</View>
-					</View>
-				</View>
-			</ScrollView>
-		)
-	}
-}
 							
 const s = StyleSheet.create({
 	title: {
@@ -271,7 +418,7 @@ const s = StyleSheet.create({
 		height: 250,
 		opacity: .8,
 		margin: 24,
-		marginTop: -80
+		marginTop: -80,
 	},
 	camera: {
 		flex: 1,
@@ -317,5 +464,21 @@ const s = StyleSheet.create({
 		textShadowRadius: 2,
 		textShadowColor: '#666',
 		fontSize: 18
+	},
+	diseaseSectionTitle: {
+		fontSize: 18,
+		fontFamily: 'Product Sans Bold',
+		color: '#666',
+	},
+	textPoint: {
+		fontFamily: 'Product Sans',
+		fontSize: 16,
+		marginLeft: 8,
+		width: '94%',
+	},
+	divider: {
+		marginHorizontal: -16,
+		marginBottom: 8,
+		marginTop: 4,
 	}
 })
